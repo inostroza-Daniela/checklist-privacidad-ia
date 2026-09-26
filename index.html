@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="author" content="Daniela Paz Inostroza Mancilla">
+<meta name="description" content="Checklist de privacidad para proyectos con IA. Material de la charla de Daniela Inostroza.">
+<title>Checklist de privacidad IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --ground: #0B1226;
+    --ground-2: #111A33;
+    --surface: #141E3A;
+    --line: #26325A;
+    --text: #F4F1EA;
+    --muted: #B9C2D6;
+    --faint: #8C97B0;
+    --amber: #F5B83D;
+    --amber-ink: #0B1226;
+    --cyan: #62C6DC;
+    --ok: #6FD3A4;
+    --display: "Space Grotesk", "Segoe UI", Arial, sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+    --mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--ground); }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(900px 500px at 100% 0%, rgba(98,198,220,0.10), transparent 70%),
+      radial-gradient(700px 500px at 100% 100%, rgba(245,184,61,0.07), transparent 70%),
+      var(--ground);
+    color: var(--text);
+    font: 17px/1.55 var(--body);
+    padding-inline: 20px;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding-block: 48px 64px; display: flex; flex-direction: column; gap: 40px; }
+
+  header { display: flex; flex-direction: column; gap: 16px; }
+  .eyebrow { display: flex; align-items: center; gap: 14px; font: 600 13px/1.3 var(--body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+  .eyebrow::before { content: ""; width: 36px; height: 3px; background: var(--amber); flex: none; }
+  h1 { margin: 0; font: 700 clamp(34px, 6vw, 52px)/1.06 var(--display); letter-spacing: -0.02em; text-wrap: balance; }
+  .lead { margin: 0; color: var(--muted); font-size: 19px; max-width: 62ch; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--faint); font-size: 14px; }
+  .meta span { display: inline-flex; align-items: center; gap: 8px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
+
+  .score {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+    background: rgba(11,18,38,0.92); backdrop-filter: blur(8px);
+    border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 20px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .score-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; }
+  .score-num { font: 700 28px/1 var(--display); font-variant-numeric: tabular-nums; }
+  .score-num small { font: 500 16px var(--body); color: var(--faint); }
+  .crit-status { font: 500 14px/1.3 var(--mono); color: var(--amber); }
+  .crit-status.clear { color: var(--ok); }
+  .bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--cyan), var(--amber)); transition: width 0.3s ease; }
+
+  .block { display: flex; flex-direction: column; gap: 14px; }
+  .block-head { display: flex; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+  .block-num { font: 500 15px var(--mono); color: var(--cyan); }
+  .block h2 { margin: 0; font: 700 23px/1.2 var(--display); flex: 1; text-wrap: balance; }
+  .block-count { font: 500 14px var(--mono); color: var(--faint); font-variant-numeric: tabular-nums; }
+
+  .items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .item label {
+    display: grid; grid-template-columns: 26px 1fr; gap: 14px; align-items: start;
+    padding: 14px 16px; border-radius: 12px; border: 1px solid transparent;
+    cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .item label:hover { background: var(--ground-2); border-color: var(--line); }
+  .item input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .box { width: 26px; height: 26px; border-radius: 7px; border: 2px solid var(--faint); display: grid; place-items: center; margin-top: 1px; transition: all 0.15s ease; }
+  .box svg { width: 16px; height: 16px; opacity: 0; }
+  .item input:checked + .box { background: var(--cyan); border-color: var(--cyan); }
+  .item input:checked + .box svg { opacity: 1; }
+  .item input:focus-visible + .box { outline: 3px solid var(--amber); outline-offset: 2px; }
+  .q { display: flex; flex-direction: column; gap: 6px; }
+  .q-text { color: var(--text); }
+  .item input:checked ~ .q .q-text { color: var(--muted); }
+  .pill { align-self: flex-start; font: 600 12px/1 var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--amber-ink); background: var(--amber); padding: 5px 9px; border-radius: 99px; }
+  .item input:checked ~ .q .pill { background: transparent; color: var(--ok); box-shadow: inset 0 0 0 1px var(--ok); }
+
+  .example { margin: 0; padding: 14px 18px; border-left: 3px solid var(--line); color: var(--muted); font-size: 16px; }
+  .example b { color: var(--text); font-weight: 600; }
+  code { font: 500 0.92em var(--mono); color: var(--cyan); }
+
+  .result { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+  .result .tag { font: 500 13px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--faint); }
+  .result h2 { margin: 0; font: 700 26px/1.2 var(--display); text-wrap: balance; }
+  .result p { margin: 0; color: var(--muted); }
+  .levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .level { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--faint); }
+  .level strong { font: 700 17px var(--display); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .level.on { border-color: var(--amber); background: rgba(245,184,61,0.08); color: var(--muted); }
+  .level.on strong { color: var(--amber); }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  button { font: 600 15px var(--body); color: var(--text); background: transparent; border: 1px solid var(--faint); border-radius: 10px; padding: 10px 16px; cursor: pointer; }
+  button:hover { border-color: var(--text); }
+  button:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+  footer { display: flex; flex-direction: column; gap: 10px; color: var(--faint); font-size: 14px; border-top: 1px solid var(--line); padding-top: 24px; }
+  footer strong { color: var(--muted); font-weight: 600; }
+  .privacy { display: flex; gap: 10px; align-items: flex-start; color: var(--muted); }
+  .privacy svg { flex: none; width: 18px; height: 18px; margin-top: 2px; }
+
+  @media (max-width: 560px) {
+    body { font-size: 16px; }
+    .levels { grid-template-columns: 1fr; }
+    .item label { padding: 12px 10px; gap: 12px; }
+    .result { padding: 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Tu prompt también es un dato personal</div>
+    <h1>¿Tu proyecto con IA protege los datos personales?</h1>
+    <p class="lead">Veinte preguntas de sí o no para revisar, en 15 minutos, una app, un agente o un bot que recibe datos de personas. Basada en la Ley 21.719 de Chile y en las reglas que comparten las leyes de América Latina.</p>
+    <div class="meta">
+      <span><i class="dot"></i>Marca solo lo que puedas afirmar con un sí honesto</span>
+      <span><i class="dot" style="background:var(--amber)"></i>Resuelve primero las críticas</span>
+    </div>
+  </header>
+
+  <div class="score" aria-live="polite">
+    <div class="score-row">
+      <div class="score-num"><span id="done">0</span><small> de 20 cumplidas</small></div>
+      <div class="crit-status" id="crit">4 críticas pendientes</div>
+    </div>
+    <div class="bar"><i id="bar"></i></div>
+  </div>
+
+  <main id="blocks" style="display:flex; flex-direction:column; gap:40px"></main>
+
+  <section class="result" aria-live="polite">
+    <div class="tag">Tu resultado</div>
+    <h2 id="r-title">Marca lo que tu proyecto ya cumple</h2>
+    <p id="r-text">A medida que avances, aquí verás qué significa tu puntaje y qué hacer primero.</p>
+    <div class="levels">
+      <div class="level" id="lv1"><strong>0–11</strong>Riesgos importantes</div>
+      <div class="level" id="lv2"><strong>12–17</strong>Base con brechas</div>
+      <div class="level" id="lv3"><strong>18–20</strong>Buen punto de partida</div>
+    </div>
+    <div class="actions">
+      <button type="button" id="reset">Empezar de nuevo</button>
+    </div>
+  </section>
+
+  <footer>
+    <div class="privacy">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#62C6DC" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2" fill="none"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none"/></svg>
+      <span>Tus respuestas no se guardan ni se envían a ningún lado: todo ocurre en tu navegador y se borra al cerrar la página.</span>
+    </div>
+    <div>Elaborada por <strong>Daniela Inostroza Mancilla</strong>, Directora Legal y DPO de la Comunidad IA-LATAM y fundadora de Noesis SpA.</div>
+    <div>Es una guía de autoevaluación y no reemplaza la asesoría legal para casos concretos. Revisa también la ley de protección de datos de tu país.</div>
+    <div>© 2026 Daniela Paz Inostroza Mancilla. Todos los derechos reservados. Material de la charla "Tu prompt también es un dato personal".</div>
+  </footer>
+</div>
+
+<script>
+  const BLOCKS = [
+    { title: "Qué datos tratas",
+      items: [
+        ["Tengo una lista de qué datos personales entran a mi proyecto: formularios, prompts, archivos subidos e integraciones.", false],
+        ["Sé si recibo datos sensibles: salud, biometría, datos genéticos, orientación sexual, afiliación política o religiosa, entre otros.", true],
+        ["Sé si mi proyecto lo usan niñas, niños o adolescentes, y trato sus datos con protección reforzada.", false]
+      ],
+      example: "<b>Ejemplo:</b> un chatbot de reservas \"sin datos sensibles\" recibe el mensaje \"necesito hora porque estoy embarazada\". Ya trata datos de salud." },
+    { title: "APIs de LLM y transferencia internacional",
+      items: [
+        ["Sé a qué proveedores de IA envío datos (OpenAI, Anthropic, Google u otros) y en qué país los procesan.", false],
+        ["Seudonimizo los datos personales antes de enviarlos al modelo: nombres, documentos de identidad, correos y teléfonos.", false],
+        ["Revisé los términos del proveedor: si usa mis datos para entrenar y si ofrece un acuerdo de tratamiento de datos (DPA).", true],
+        ["Mi política de privacidad informa que los datos pueden salir de mi país y hacia dónde.", false]
+      ],
+      example: "<b>Ejemplo:</b> reemplazar <code>María Soto, RUT 12.345.678-9</code> por <code>[PERSONA_1], [RUT_1]</code> antes del prompt. El modelo responde igual de bien y el dato nunca sale." },
+    { title: "Prompts, logs y retención",
+      items: [
+        ["Pido solo los datos que el proyecto necesita para funcionar.", false],
+        ["Mis logs no guardan conversaciones completas con datos personales, o los enmascaro antes de guardarlos.", false],
+        ["Definí cuánto tiempo guardo los datos y tengo un proceso para borrarlos.", false]
+      ],
+      example: "<b>Ejemplo:</b> registrar <code>usuario 4821 pidió un resumen</code> en vez de todo el texto que pegó en el chat." },
+    { title: "Base legal y finalidad",
+      items: [
+        ["Sé con qué base legal trato los datos: consentimiento, contrato, obligación legal, interés legítimo u otra.", true],
+        ["Si uso consentimiento, es libre, informado y específico: sin casillas premarcadas ni aceptaciones escondidas.", false],
+        ["Tengo una política de privacidad clara que explica qué datos uso y para qué.", false],
+        ["Si reutilizo datos para entrenar o afinar un modelo, esa finalidad estaba informada o tiene su propia base legal.", false]
+      ],
+      example: "<b>Ejemplo:</b> los correos que los clientes enviaron a soporte no se pueden usar para entrenar un modelo solo porque \"ya los tenemos\"." },
+    { title: "Decisiones automatizadas y derechos",
+      items: [
+        ["Si mi IA aprueba, rechaza, puntúa o clasifica personas, alguien revisa la decisión y la persona afectada puede impugnarla.", false],
+        ["Informo cuando uso decisiones automatizadas o perfilamiento.", false],
+        ["Puedo responder a tiempo (en Chile, 30 días) si alguien pide acceder, corregir, borrar, oponerse, bloquear o llevarse sus datos.", false]
+      ],
+      example: "<b>Ejemplo:</b> un agente que filtra CVs y descarta postulantes necesita que una persona revise los descartes antes de comunicarlos." },
+    { title: "Seguridad y brechas",
+      items: [
+        ["Mis claves de API y secretos están fuera del código y del repositorio, en variables de entorno o un gestor de secretos.", false],
+        ["Los datos personales viajan cifrados y el acceso a la base de datos está limitado a quien lo necesita.", false],
+        ["Tengo un protocolo escrito para una brecha: quién decide, cómo se notifica a la autoridad sin demora y cuándo se avisa a las personas afectadas.", true]
+      ],
+      example: "<b>Ejemplo:</b> una clave de API subida por error a un repositorio público puede exponer todo el historial de conversaciones. Eso es una brecha que se debe notificar." }
+  ];
+
+  const tick = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="#0B1226" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const main = document.getElementById("blocks");
+  let n = 0;
+  BLOCKS.forEach((b, bi) => {
+    const sec = document.createElement("section");
+    sec.className = "block";
+    sec.setAttribute("aria-labelledby", "b" + bi);
+    const items = b.items.map(([text, crit]) => {
+      n += 1;
+      const id = "q" + n;
+      return `<li class="item"><label for="${id}"><input type="checkbox" id="${id}" data-crit="${crit ? 1 : 0}" data-block="${bi}"><span class="box">${tick}</span><span class="q"><span class="q-text">${text}</span>${crit ? '<span class="pill">Crítica</span>' : ""}</span></label></li>`;
+    }).join("");
+    sec.innerHTML = `<div class="block-head"><span class="block-num">0${bi + 1}</span><h2 id="b${bi}">${b.title}</h2><span class="block-count" id="c${bi}">0/${b.items.length}</span></div><ul class="items">${items}</ul><p class="example">${b.example}</p>`;
+    main.appendChild(sec);
+  });
+
+  const boxes = [...document.querySelectorAll('.item input')];
+  const $ = id => document.getElementById(id);
+
+  function update() {
+    const done = boxes.filter(b => b.checked).length;
+    const critPending = boxes.filter(b => b.dataset.crit === "1" && !b.checked).length;
+    $("done").textContent = done;
+    $("bar").style.width = (done / boxes.length * 100) + "%";
+    const crit = $("crit");
+    crit.textContent = critPending === 0 ? "Críticas resueltas" : critPending === 1 ? "1 crítica pendiente" : critPending + " críticas pendientes";
+    crit.classList.toggle("clear", critPending === 0);
+    BLOCKS.forEach((b, bi) => {
+      const inBlock = boxes.filter(x => x.dataset.block === String(bi));
+      $("c" + bi).textContent = inBlock.filter(x => x.checked).length + "/" + inBlock.length;
+    });
+    ["lv1", "lv2", "lv3"].forEach(id => $(id).classList.remove("on"));
+    let title, text;
+    if (done === 0) {
+      title = "Marca lo que tu proyecto ya cumple";
+      text = "A medida que avances, aquí verás qué significa tu puntaje y qué hacer primero.";
+    } else if (done >= 18) {
+      $("lv3").classList.add("on");
+      title = "Buen punto de partida";
+      text = "Documenta lo que ya haces: la ley exige poder demostrar que cumples, no solo cumplir.";
+    } else if (done >= 12) {
+      $("lv2").classList.add("on");
+      title = "Base razonable, con brechas";
+      text = "Tienes lo esencial. Cada pregunta sin marcar es una tarea pendiente; parte por las críticas.";
+    } else {
+      $("lv1").classList.add("on");
+      title = "Tu proyecto tiene riesgos importantes";
+      text = "Resuelve las preguntas críticas antes de que la ley de tu país te lo exija. Son las que tocan las infracciones más graves.";
+    }
+    if (done > 0 && critPending > 0) {
+      text += " Una sola crítica sin marcar pesa más que el puntaje total.";
+    }
+    $("r-title").textContent = title;
+    $("r-text").textContent = text;
+  }
+
+  boxes.forEach(b => b.addEventListener("change", update));
+  $("reset").addEventListener("click", () => { boxes.forEach(b => { b.checked = false; }); update(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+  update();
+</script>
+
+</body>
+</html>
